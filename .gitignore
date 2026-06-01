@@ -1,0 +1,60 @@
+# Node & npm
+node_modules/
+package-lock.json
+npm-debug.log
+yarn.lock
+.yarn/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+*.egg-info/
+.venv
+.env
+
+# Build outputs
+dist/
+build/
+.next/
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.classpath
+.c9/
+.iml
+
+# OS-specific
+Thumbs.db
+.AppleDouble
+.LSOverride
+*.log
+
+# Testing
+coverage/
+.nyc_output/
+.pytest_cache/
+
+# Development
+.env.local
+.env.*.local
+vite.config.js.timestamp-*
+
+# Data & Reports
+data/raw/
+data/processed/
+*.csv
+*.xlsx
+
+# Backups
+*.bak
+*.backup

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EDA Report — DecodeLabs Dataset</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0f14;
+    --surface: #111820;
+    --card: #161e28;
+    --border: #1e2d3d;
+    --cyan: #00e5ff;
+    --cyan-dim: rgba(0,229,255,0.12);
+    --amber: #f59e0b;
+    --rose: #f43f5e;
+    --green: #22d3a5;
+    --text: #e2eaf4;
+    --muted: #6b8098;
+    --mono: 'JetBrains Mono', monospace;
+    --serif: 'Lora', serif;
+    --display: 'Syne', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--display);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── GRID TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  .wrapper { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* ── HERO ── */
+  header {
+    padding: 72px 0 48px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    border: 1px solid var(--cyan);
+    padding: 4px 12px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+    background: var(--cyan-dim);
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.6rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+    color: var(--text);
+  }
+  h1 span { color: var(--cyan); }
+  .subtitle {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--muted);
+    margin-top: 12px;
+    font-size: 1.05rem;
+  }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: 24px;
+    margin-top: 28px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .meta-row span { display: flex; align-items: center; gap: 6px; }
+  .meta-row .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); display: inline-block; }
+
+  /* ── KPI STRIP ── */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin: 40px 0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .kpi {
+    background: var(--card);
+    padding: 24px 20px;
+    display: flex; flex-direction: column; gap: 6px;
+    animation: fadeUp .5s ease both;
+  }
+  .kpi:nth-child(1){animation-delay:.05s}
+  .kpi:nth-child(2){animation-delay:.1s}
+  .kpi:nth-child(3){animation-delay:.15s}
+  .kpi:nth-child(4){animation-delay:.2s}
+  .kpi:nth-child(5){animation-delay:.25s}
+  .kpi-label { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .kpi-value { font-size: 1.9rem; font-weight: 800; color: var(--cyan); letter-spacing: -.02em; }
+  .kpi-sub { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+  /* ── SECTION ── */
+  section { margin: 56px 0; }
+  .section-header { display: flex; align-items: baseline; gap: 16px; margin-bottom: 24px; }
+  .section-num { font-family: var(--mono); font-size: 11px; color: var(--cyan); opacity: .7; letter-spacing: .1em; }
+  h2 { font-size: 1.5rem; font-weight: 700; letter-spacing: -.01em; }
+  h3 { font-size: 1rem; font-weight: 600; color: var(--muted); margin-bottom: 16px; font-family: var(--mono); text-transform: uppercase; letter-spacing: .1em; font-size: .75rem; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+  }
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width:600px){ .two-col { grid-template-columns: 1fr; } }
+
+  /* ── STAT TABLE ── */
+  .stat-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  .stat-table th { font-family: var(--mono); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .stat-table td { padding: 10px 12px; border-bottom: 1px solid rgba(30,45,61,.6); font-family: var(--mono); font-size: .82rem; }
+  .stat-table tr:last-child td { border-bottom: none; }
+  .stat-table td:first-child { color: var(--text); font-weight: 500; }
+  .stat-table td:not(:first-child) { color: var(--cyan); }
+  .stat-table tr:hover td { background: rgba(0,229,255,.03); }
+
+  /* ── BAR CHART ── */
+  .bar-list { display: flex; flex-direction: column; gap: 10px; }
+  .bar-item { display: flex; align-items: center; gap: 12px; }
+  .bar-name { font-family: var(--mono); font-size: .75rem; color: var(--muted); min-width: 90px; text-align: right; }
+  .bar-track { flex: 1; height: 22px; background: rgba(255,255,255,.04); border-radius: 2px; overflow: hidden; position: relative; }
+  .bar-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, var(--cyan), rgba(0,229,255,.5));
+    width: 0;
+    transition: width 1s cubic-bezier(.17,.67,.35,1.0);
+  }
+  .bar-fill.amber { background: linear-gradient(90deg, var(--amber), rgba(245,158,11,.4)); }
+  .bar-fill.green { background: linear-gradient(90deg, var(--green), rgba(34,211,165,.4)); }
+  .bar-fill.rose  { background: linear-gradient(90deg, var(--rose), rgba(244,63,94,.4)); }
+  .bar-val { font-family: var(--mono); font-size: .72rem; color: var(--muted); min-width: 56px; text-align: right; }
+
+  /* ── DONUT ── */
+  .donut-wrap { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; }
+  svg.donut { flex-shrink: 0; }
+  .legend { display: flex; flex-direction: column; gap: 8px; font-family: var(--mono); font-size: .76rem; }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── INSIGHT BOX ── */
+  .insight {
+    border-left: 3px solid var(--cyan);
+    background: var(--cyan-dim);
+    padding: 14px 18px;
+    border-radius: 0 4px 4px 0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: .92rem;
+    color: var(--text);
+    margin-top: 20px;
+  }
+  .insight strong { color: var(--cyan); font-style: normal; font-family: var(--display); }
+  .warning { border-left-color: var(--amber); background: rgba(245,158,11,.08); }
+  .danger  { border-left-color: var(--rose);  background: rgba(244,63,94,.08); }
+
+  /* ── OUTLIER TABLE ── */
+  .outlier-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: .68rem;
+    padding: 2px 8px;
+    border-radius: 2px;
+    border: 1px solid var(--rose);
+    color: var(--rose);
+    background: rgba(244,63,94,.1);
+  }
+
+  /* ── CORR GRID ── */
+  .corr-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .corr-cell { background: var(--card); padding: 18px 12px; text-align: center; }
+  .corr-cell .pair { font-family: var(--mono); font-size: .7rem; color: var(--muted); }
+  .corr-cell .r { font-size: 1.6rem; font-weight: 800; margin: 6px 0; }
+  .corr-cell .label { font-family: var(--mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; }
+  .strong-pos { color: var(--cyan); }
+  .mod-pos { color: var(--green); }
+  .weak     { color: var(--muted); }
+
+  /* ── TIMELINE ── */
+  .timeline { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  .yr-card { background: var(--card); border: 1px solid var(--border); border-radius: 4px; padding: 20px; text-align: center; }
+  .yr-label { font-family: var(--mono); font-size: .7rem; letter-spacing: .12em; color: var(--muted); margin-bottom: 8px; }
+  .yr-val { font-size: 1.4rem; font-weight: 800; }
+  .yr-sub { font-family: var(--mono); font-size: .72rem; color: var(--muted); margin-top: 4px; }
+
+  /* ── FINDINGS ── */
+  .findings-grid { display: flex; flex-direction: column; gap: 12px; }
+  .finding {
+    display: flex; gap: 16px; align-items: flex-start;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 4px; padding: 16px 20px;
+  }
+  .finding-num { font-family: var(--mono); font-size: .7rem; color: var(--cyan); opacity: .6; min-width: 24px; padding-top: 2px; }
+  .finding-text { font-size: .9rem; line-height: 1.6; }
+  .finding-text strong { color: var(--cyan); }
+
+  /* ── ANIM ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 28px;
+    margin-top: 64px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: .72rem;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header>
+    <div class="badge">Project 2 · DecodeLabs · Batch 2026</div>
+    <h1>Exploratory Data<br><span>Analysis Report</span></h1>
+    <p class="subtitle">E-Commerce Orders Dataset — 1,200 records, 14 variables</p>
+    <div class="meta-row">
+      <span><i class="dot"></i>Dataset: 1,200 orders · 2023–2025</span>
+      <span><i class="dot"></i>Missing values: CouponCode only (25.75%)</span>
+      <span><i class="dot"></i>Outliers detected: 7 (IQR method)</span>
+      <span><i class="dot"></i>Method: Descriptive statistics + IQR + Pearson r</span>
+    </div>
+  </header>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip">
+    <div class="kpi">
+      <span class="kpi-label">Total Orders</span>
+      <span class="kpi-value">1,200</span>
+      <span class="kpi-sub">Jan 2023 – May 2025</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-label">Total Revenue</span>
+      <span class="kpi-value">$1.26M</span>
+      <span class="kpi-sub">Sum of TotalPrice</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-label">Avg Order Value</span>
+      <span class="kpi-value">$1,054</span>
+      <span class="kpi-sub">Median: $824</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-label">Products</span>
+      <span class="kpi-value">7</span>
+      <span class="kpi-sub">Monitor · Phone · Tablet…</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-label">Cancellation Rate</span>
+      <span class="kpi-value">20.8%</span>
+      <span class="kpi-sub">250 cancelled orders</span>
+    </div>
+  </div>
+
+  <!-- SECTION 1: DATASET OVERVIEW -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">01 —</span>
+      <h2>Dataset Overview & Data Quality</h2>
+    </div>
+    <div class="card-grid">
+      <div class="card">
+        <h3>Descriptive Statistics — Numeric Columns</h3>
+        <table class="stat-table">
+          <thead><tr><th>Column</th><th>Mean</th><th>Median</th><th>Min</th><th>Max</th><th>Std Dev</th></tr></thead>
+          <tbody>
+            <tr><td>Quantity</td><td>2.95</td><td>3.00</td><td>1</td><td>5</td><td>1.41</td></tr>
+            <tr><td>UnitPrice ($)</td><td>356.41</td><td>364.21</td><td>11.39</td><td>699.93</td><td>197.18</td></tr>
+            <tr><td>TotalPrice ($)</td><td>1,053.97</td><td>823.62</td><td>11.39</td><td>3,456.40</td><td>819.86</td></tr>
+            <tr><td>ItemsInCart</td><td>5.49</td><td>5.00</td><td>1</td><td>10</td><td>2.28</td></tr>
+          </tbody>
+        </table>
+        <div class="insight warning">
+          <strong>Skew Alert:</strong> TotalPrice mean ($1,054) is significantly higher than its median ($824), indicating a <strong>right-skewed distribution</strong>. A few large orders pull the average up — median is the more reliable central measure here.
+        </div>
+      </div>
+      <div class="card">
+        <h3>Missing Values</h3>
+        <div class="bar-list" id="missing-bars">
+          <div class="bar-item">
+            <span class="bar-name">CouponCode</span>
+            <div class="bar-track"><div class="bar-fill amber" data-pct="25.75"></div></div>
+            <span class="bar-val">309 (25.8%)</span>
+          </div>
+          <div class="bar-item">
+            <span class="bar-name">All others</span>
+            <div class="bar-track"><div class="bar-fill green" data-pct="0"></div></div>
+            <span class="bar-val">0 (0%)</span>
+          </div>
+        </div>
+        <div class="insight">
+          The dataset is remarkably clean — <strong>13 of 14 columns are 100% complete</strong>. The 309 missing CouponCode values likely represent orders placed without a discount code, not data entry errors. No imputation needed.
+        </div>
+        <div style="margin-top:16px;">
+          <h3>Five-Number Summary — TotalPrice</h3>
+          <table class="stat-table">
+            <thead><tr><th>Min</th><th>Q1</th><th>Median</th><th>Q3</th><th>Max</th><th>IQR</th></tr></thead>
+            <tbody>
+              <tr><td>$11.39</td><td>$410.52</td><td>$823.62</td><td>$1,580.35</td><td>$3,456.40</td><td>$1,169.83</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: PRODUCT & REVENUE -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">02 —</span>
+      <h2>Product Performance & Revenue</h2>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <h3>Total Revenue by Product</h3>
+        <div class="bar-list" id="prod-rev">
+          <div class="bar-item"><span class="bar-name">Chair</span><div class="bar-track"><div class="bar-fill" data-pct="100"></div></div><span class="bar-val">$195,620</span></div>
+          <div class="bar-item"><span class="bar-name">Printer</span><div class="bar-track"><div class="bar-fill" data-pct="99.9"></div></div><span class="bar-val">$195,613</span></div>
+          <div class="bar-item"><span class="bar-name">Laptop</span><div class="bar-track"><div class="bar-fill" data-pct="98.2"></div></div><span class="bar-val">$192,127</span></div>
+          <div class="bar-item"><span class="bar-name">Tablet</span><div class="bar-track"><div class="bar-fill" data-pct="95.4"></div></div><span class="bar-val">$186,569</span></div>
+          <div class="bar-item"><span class="bar-name">Monitor</span><div class="bar-track"><div class="bar-fill amber" data-pct="89.8"></div></div><span class="bar-val">$175,651</span></div>
+          <div class="bar-item"><span class="bar-name">Desk</span><div class="bar-track"><div class="bar-fill amber" data-pct="85.6"></div></div><span class="bar-val">$167,460</span></div>
+          <div class="bar-item"><span class="bar-name">Phone</span><div class="bar-track"><div class="bar-fill rose" data-pct="77.6"></div></div><span class="bar-val">$151,722</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Avg Order Value by Product</h3>
+        <div class="bar-list">
+          <div class="bar-item"><span class="bar-name">Laptop</span><div class="bar-track"><div class="bar-fill" data-pct="100"></div></div><span class="bar-val">$1,111</span></div>
+          <div class="bar-item"><span class="bar-name">Chair</span><div class="bar-track"><div class="bar-fill" data-pct="98.9"></div></div><span class="bar-val">$1,099</span></div>
+          <div class="bar-item"><span class="bar-name">Monitor</span><div class="bar-track"><div class="bar-fill" data-pct="97.0"></div></div><span class="bar-val">$1,078</span></div>
+          <div class="bar-item"><span class="bar-name">Printer</span><div class="bar-track"><div class="bar-fill" data-pct="97.3"></div></div><span class="bar-val">$1,081</span></div>
+          <div class="bar-item"><span class="bar-name">Tablet</span><div class="bar-track"><div class="bar-fill amber" data-pct="93.8"></div></div><span class="bar-val">$1,042</span></div>
+          <div class="bar-item"><span class="bar-name">Desk</span><div class="bar-track"><div class="bar-fill amber" data-pct="88.7"></div></div><span class="bar-val">$985</span></div>
+          <div class="bar-item"><span class="bar-name">Phone</span><div class="bar-track"><div class="bar-fill rose" data-pct="87.5"></div></div><span class="bar-val">$973</span></div>
+        </div>
+        <div class="insight">
+          <strong>Laptop</strong> generates the highest average order value ($1,111) despite not being the top revenue product — it has fewer orders (173). <strong>Chair</strong> is the true revenue champion: high volume AND high avg value.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: ORDER STATUS -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">03 —</span>
+      <h2>Order Status Distribution</h2>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <h3>Status Breakdown</h3>
+        <div class="donut-wrap">
+          <!-- SVG donut chart -->
+          <svg class="donut" width="140" height="140" viewBox="0 0 140 140">
+            <!-- Cancelled 250/1200 = 20.8% → 74.9° -->
+            <!-- Returned 247/1200 = 20.6% → 73.8° -->
+            <!-- Pending 237/1200 = 19.75% → 71.1° -->
+            <!-- Shipped 235/1200 = 19.6% → 70.5° -->
+            <!-- Delivered 231/1200 = 19.25% → 69.3° -->
+            <circle cx="70" cy="70" r="52" fill="none" stroke="#1e2d3d" stroke-width="22"/>
+            <!-- Using stroke-dasharray on a r=52 circle → circumference = 326.7 -->
+            <!-- Cancelled: 20.8% = 68.0 -->
+            <circle cx="70" cy="70" r="52" fill="none" stroke="#f43f5e" stroke-width="22"
+              stroke-dasharray="68 258.7" stroke-dashoffset="81.7" stroke-linecap="butt"/>
+            <!-- Returned: 20.6% = 67.3, offset = 81.7-68= -68 → offset=81.7+258.7-68 -->
+            <circle cx="70" cy="70" r="52" fill="none" stroke="#f59e0b" stroke-width="22"
+              stroke-dasharray="67.3 259.4" stroke-dashoffset="13.7" stroke-linecap="butt"/>
+            <!-- Pending: 19.75% = 64.5, offset = 13.7 - 67.3 = -53.6 → 326.7-53.6=273.1 -->
+            <circle cx="70" cy="70" r="52" fill="none" stroke="#a855f7" stroke-width="22"
+              stroke-dasharray="64.5 262.2" stroke-dashoffset="273.1" stroke-linecap="butt"/>
+            <!-- Shipped: 19.6% = 64.0, offset 273.1-64.5=208.6 -->
+            <circle cx="70" cy="70" r="52" fill="none" stroke="#00e5ff" stroke-width="22"
+              stroke-dasharray="64.0 262.7" stroke-dashoffset="208.6" stroke-linecap="butt"/>
+            <!-- Delivered: 19.25% = 62.9, offset 208.6-64=144.6 -->
+            <circle cx="70" cy="70" r="52" fill="none" stroke="#22d3a5" stroke-width="22"
+              stroke-dasharray="62.9 263.8" stroke-dashoffset="144.6" stroke-linecap="butt"/>
+            <text x="70" y="67" text-anchor="middle" fill="#e2eaf4" font-size="13" font-family="Syne" font-weight="700">1,200</text>
+            <text x="70" y="81" text-anchor="middle" fill="#6b8098" font-size="8" font-family="JetBrains Mono">ORDERS</text>
+          </svg>
+          <div class="legend">
+            <div class="legend-item"><span class="legend-dot" style="background:#f43f5e"></span>Cancelled — 250 (20.8%)</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>Returned — 247 (20.6%)</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#a855f7"></span>Pending — 237 (19.75%)</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#00e5ff"></span>Shipped — 235 (19.6%)</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#22d3a5"></span>Delivered — 231 (19.25%)</div>
+          </div>
+        </div>
+        <div class="insight danger">
+          <strong>Critical finding:</strong> Only 19.25% of orders are Delivered. Combined Cancelled + Returned = <strong>41.4%</strong> — nearly half the orders never result in a successful transaction. This is a severe business risk.
+        </div>
+      </div>
+      <div class="card">
+        <h3>Avg Revenue per Status</h3>
+        <div class="bar-list">
+          <div class="bar-item"><span class="bar-name">Cancelled</span><div class="bar-track"><div class="bar-fill rose" data-pct="100"></div></div><span class="bar-val">$1,106</span></div>
+          <div class="bar-item"><span class="bar-name">Pending</span><div class="bar-track"><div class="bar-fill amber" data-pct="97.8"></div></div><span class="bar-val">$1,082</span></div>
+          <div class="bar-item"><span class="bar-name">Delivered</span><div class="bar-track"><div class="bar-fill" data-pct="94.9"></div></div><span class="bar-val">$1,050</span></div>
+          <div class="bar-item"><span class="bar-name">Shipped</span><div class="bar-track"><div class="bar-fill" data-pct="94.7"></div></div><span class="bar-val">$1,047</span></div>
+          <div class="bar-item"><span class="bar-name">Returned</span><div class="bar-track"><div class="bar-fill green" data-pct="89.1"></div></div><span class="bar-val">$985</span></div>
+        </div>
+        <div class="insight warning">
+          <strong>Cancelled orders average $1,106</strong> — the highest of all statuses. High-value customers are cancelling more, suggesting a checkout friction or expectation mismatch problem worth investigating.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: CHANNELS & PAYMENTS -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">04 —</span>
+      <h2>Acquisition Channels & Payment Methods</h2>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <h3>Referral Source Distribution</h3>
+        <div class="bar-list">
+          <div class="bar-item"><span class="bar-name">Instagram</span><div class="bar-track"><div class="bar-fill" data-pct="100"></div></div><span class="bar-val">259 (21.6%)</span></div>
+          <div class="bar-item"><span class="bar-name">Email</span><div class="bar-track"><div class="bar-fill" data-pct="96.5"></div></div><span class="bar-val">250 (20.8%)</span></div>
+          <div class="bar-item"><span class="bar-name">Google</span><div class="bar-track"><div class="bar-fill amber" data-pct="93.1"></div></div><span class="bar-val">241 (20.1%)</span></div>
+          <div class="bar-item"><span class="bar-name">Facebook</span><div class="bar-track"><div class="bar-fill amber" data-pct="88.0"></div></div><span class="bar-val">228 (19.0%)</span></div>
+          <div class="bar-item"><span class="bar-name">Referral</span><div class="bar-track"><div class="bar-fill green" data-pct="85.7"></div></div><span class="bar-val">222 (18.5%)</span></div>
+        </div>
+        <div class="insight">
+          Channels are <strong>evenly distributed</strong> (~20% each), suggesting no single dominant acquisition source. Instagram leads marginally. This even spread indicates either a well-balanced marketing budget or a dataset designed for fairness — worth verifying with real campaign data.
+        </div>
+      </div>
+      <div class="card">
+        <h3>Payment Method Distribution</h3>
+        <div class="bar-list">
+          <div class="bar-item"><span class="bar-name">Online</span><div class="bar-track"><div class="bar-fill" data-pct="100"></div></div><span class="bar-val">258 (21.5%)</span></div>
+          <div class="bar-item"><span class="bar-name">Cash</span><div class="bar-track"><div class="bar-fill" data-pct="95.3"></div></div><span class="bar-val">246 (20.5%)</span></div>
+          <div class="bar-item"><span class="bar-name">Credit Card</span><div class="bar-track"><div class="bar-fill amber" data-pct="90.7"></div></div><span class="bar-val">234 (19.5%)</span></div>
+          <div class="bar-item"><span class="bar-name">Debit Card</span><div class="bar-track"><div class="bar-fill amber" data-pct="89.9"></div></div><span class="bar-val">232 (19.3%)</span></div>
+          <div class="bar-item"><span class="bar-name">Gift Card</span><div class="bar-track"><div class="bar-fill green" data-pct="89.1"></div></div><span class="bar-val">230 (19.2%)</span></div>
+        </div>
+        <div class="insight">
+          Like referral sources, payment methods are <strong>uniformly distributed</strong>. The near-equal split across 5 payment types is unusual for real e-commerce data — in practice, card payments dominate. This distribution pattern is consistent across the dataset.
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h3>Coupon Usage Impact</h3>
+      <div style="display:flex; gap:32px; flex-wrap:wrap; align-items:center;">
+        <div style="text-align:center;">
+          <div style="font-size:2rem; font-weight:800; color:var(--cyan)">$1,058</div>
+          <div style="font-family:var(--mono);font-size:.72rem;color:var(--muted)">Avg spend WITH coupon<br>(n=891, 74.25%)</div>
+        </div>
+        <div style="font-size:2rem; color:var(--muted)">vs</div>
+        <div style="text-align:center;">
+          <div style="font-size:2rem; font-weight:800; color:var(--amber)">$1,043</div>
+          <div style="font-family:var(--mono);font-size:.72rem;color:var(--muted)">Avg spend WITHOUT coupon<br>(n=309, 25.75%)</div>
+        </div>
+        <div class="insight" style="flex:1; min-width:240px;">
+          <strong>Coupon codes show negligible impact</strong> on average spend (+$15, ~1.4% difference). Customers using coupons don't actually spend more per order. The discount may be reducing margin without meaningfully increasing cart size.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: OUTLIERS -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">05 —</span>
+      <h2>Outlier Detection (IQR Method)</h2>
+    </div>
+    <div class="card">
+      <h3>TotalPrice — IQR Bounds</h3>
+      <p style="font-family:var(--mono);font-size:.82rem;color:var(--muted);margin-bottom:16px;">
+        Lower fence = Q1 − 1.5×IQR = $410.52 − 1.5×$1,169.83 = <span style="color:var(--rose)">−$1,344.22 (no lower outliers possible)</span><br>
+        Upper fence = Q3 + 1.5×IQR = $1,580.35 + 1.5×$1,169.83 = <span style="color:var(--rose)">$3,335.09</span>
+      </p>
+      <p style="font-family:var(--mono);font-size:.8rem;color:var(--text);margin-bottom:12px;"><strong>7 orders flagged as upper outliers</strong> (TotalPrice > $3,335.09):</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+        <span class="outlier-tag">$3,352.40</span>
+        <span class="outlier-tag">$3,353.75</span>
+        <span class="outlier-tag">$3,370.20</span>
+        <span class="outlier-tag">$3,384.90</span>
+        <span class="outlier-tag">$3,390.80</span>
+        <span class="outlier-tag">$3,390.95</span>
+        <span class="outlier-tag">$3,456.40</span>
+      </div>
+      <div class="insight">
+        All 7 outliers are <strong>upper outliers</strong> (high-value orders). These are almost certainly <strong>signal, not noise</strong> — they likely represent bulk purchases or premium configurations (e.g., 5× high-end Monitors or Laptops). Action: <strong>investigate, don't remove</strong>. They could represent VIP or B2B customers worth targeting.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 6: CORRELATIONS -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">06 —</span>
+      <h2>Correlation Analysis</h2>
+    </div>
+    <div class="card">
+      <h3>Pearson Correlation Coefficients</h3>
+      <div class="corr-grid">
+        <div class="corr-cell">
+          <div class="pair">TotalPrice ↔ UnitPrice</div>
+          <div class="r strong-pos">r = 0.72</div>
+          <div class="label strong-pos">Strong Positive</div>
+        </div>
+        <div class="corr-cell">
+          <div class="pair">TotalPrice ↔ Quantity</div>
+          <div class="r mod-pos">r = 0.62</div>
+          <div class="label mod-pos">Moderate Positive</div>
+        </div>
+        <div class="corr-cell">
+          <div class="pair">UnitPrice ↔ Quantity</div>
+          <div class="r weak">r ≈ low</div>
+          <div class="label weak">Near Independence</div>
+        </div>
+      </div>
+      <div class="insight" style="margin-top:16px;">
+        <strong>UnitPrice (r=0.72)</strong> is the dominant driver of TotalPrice — more than Quantity (r=0.62). This makes business sense: selling an expensive item matters more than selling many cheap ones. Both correlations confirm <em>TotalPrice = UnitPrice × Quantity</em> is functioning correctly. Remember: <strong>correlation ≠ causation</strong> — price increases don't automatically raise revenue if demand drops.
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7: TRENDS -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">07 —</span>
+      <h2>Year-over-Year Trend</h2>
+    </div>
+    <div class="timeline">
+      <div class="yr-card">
+        <div class="yr-label">2023</div>
+        <div class="yr-val" style="color:var(--cyan)">$552,643</div>
+        <div class="yr-sub">510 orders · avg $1,084</div>
+      </div>
+      <div class="yr-card">
+        <div class="yr-label">2024</div>
+        <div class="yr-val" style="color:var(--amber)">$480,236</div>
+        <div class="yr-sub">459 orders · avg $1,046</div>
+      </div>
+      <div class="yr-card">
+        <div class="yr-label">2025 (partial)</div>
+        <div class="yr-val" style="color:var(--rose)">$231,883</div>
+        <div class="yr-sub">231 orders · avg $1,004</div>
+      </div>
+    </div>
+    <div class="insight warning" style="margin-top:16px;">
+      <strong>Revenue declined 13.1% from 2023 to 2024</strong>, with order volume also dropping (510 → 459). 2025 data is partial (only through ~May), so annualised 2025 would project to ~$601K — a potential recovery. However, the declining avg order value ($1,084 → $1,046 → $1,004) is a worrying trend worth monitoring.
+    </div>
+  </section>
+
+  <!-- SECTION 8: KEY FINDINGS -->
+  <section>
+    <div class="section-header">
+      <span class="section-num">08 —</span>
+      <h2>Key Findings & Recommendations</h2>
+    </div>
+    <div class="findings-grid">
+      <div class="finding">
+        <span class="finding-num">F1</span>
+        <div class="finding-text"><strong>41.4% non-fulfilment rate is the #1 business problem.</strong> With 20.8% Cancelled and 20.6% Returned, only 1 in 5 orders successfully delivers. Root cause analysis on cancellation reasons (out-of-stock? checkout friction? payment failure?) is the highest-priority action.</div>
+      </div>
+      <div class="finding">
+        <span class="finding-num">F2</span>
+        <div class="finding-text"><strong>UnitPrice is the primary revenue lever.</strong> Correlation of 0.72 vs Quantity's 0.62 means premium product positioning and upselling to higher-value SKUs will outperform volume-growth strategies.</div>
+      </div>
+      <div class="finding">
+        <span class="finding-num">F3</span>
+        <div class="finding-text"><strong>Coupons are not converting to higher spend.</strong> The $15 difference in avg order value between coupon and non-coupon users is statistically negligible. Coupon strategy should be restructured — perhaps use them only for re-activation of lapsed customers rather than general distribution.</div>
+      </div>
+      <div class="finding">
+        <span class="finding-num">F4</span>
+        <div class="finding-text"><strong>Chair & Printer are underrated revenue engines.</strong> Both surpass Laptop in total revenue despite lower avg order value — their higher order volumes make them critical. Supply chain and inventory prioritisation should reflect this.</div>
+      </div>
+      <div class="finding">
+        <span class="finding-num">F5</span>
+        <div class="finding-text"><strong>7 high-value outlier orders (>$3,335) are VIP signals.</strong> These bulk/premium orders should not be removed or treated as errors. Investigate whether they represent a B2B segment that could be nurtured with dedicated account management.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>EDA Report · DecodeLabs Batch 2026 · Project 2</span>
+    <span>Dataset: 1,200 orders · 14 variables · 2023–2025</span>
+    <span style="color:var(--cyan)">Generated with Python (openpyxl + descriptive statistics)</span>
+  </footer>
+</div>
+
+<script>
+  // Animate bars on load
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.querySelectorAll('.bar-fill').forEach(bar => {
+        const pct = parseFloat(bar.dataset.pct) || 0;
+        bar.style.width = pct + '%';
+      });
+    }, 200);
+  });
+</script>
+</body>
+</html>
