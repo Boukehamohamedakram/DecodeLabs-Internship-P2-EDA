@@ -1,15 +1,14 @@
-# EDA Report — Exploratory Data Analysis
-## DecodeLabs Internship Project P2
+# Exploratory Data Analysis
 
-**Project**: Exploratory Data Analysis Report | **Track**: Career PRO Track (DecodeLabs)  
-**Status**: Production-Ready | **Version**: 1.0.0  
-**Author**: Engineering Student, ESI | **Last Updated**: June 2, 2026
+**Project**: EDA Report | **Track**: Data Analytics
+**Author**: BOUKEHA Mohamed Akram - Engineering Student, ESI 
 
 ---
 
 ## Executive Summary
 
-The **EDA Report** is a comprehensive exploratory data analysis of e-commerce transactional data, presented as an interactive HTML report. This report transforms raw datasets into visual narratives, enabling stakeholders to understand data structure, identify patterns, detect anomalies, and formulate data-driven hypotheses for downstream analysis.
+The **EDA Report** is a comprehensive exploratory data analysis of e-commerce transactional data, presented as an interactive HTML report. 
+This report transforms raw datasets into visual narratives, enabling stakeholders to understand data structure, identify patterns, detect anomalies, and formulate data-driven hypotheses for downstream analysis.
 
 ### Business Impact
 
@@ -220,7 +219,7 @@ The interactive HTML report is organized into 8 sections:
 ### Step 1: Prepare Environment
 
 ```bash
-cd ~/DecodeLabs/p2
+cd ~/p2
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
